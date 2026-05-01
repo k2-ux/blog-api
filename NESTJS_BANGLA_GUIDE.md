@@ -35,8 +35,82 @@ NestJS-এর কাঠামো ঠিক এভাবেই কাজ কর�
 | প্রবেশদ্বারের নিরাপত্তারক্ষী | **Guards** | কে ঢুকতে পারবে সিদ্ধান্ত নেয় |
 | অভিযোগ নিষ্পত্তি বিভাগ | **Exception Filters** | সমস্যা হলে সুন্দরভাবে জানায় |
 | ডেটাবেজ রেজিস্টার | **Entities** | তথ্য কীভাবে সংরক্ষিত হবে নির্ধারণ করে |
+| **নাগরিক — স্মার্টফোন হাতে** | **React / React Native অ্যাপ** | অনুরোধ পাঠায়, উত্তর দেখায় |
+| অনলাইন পোর্টালে ফরম জমা | **`fetch()` / `axios`** | HTTP অনুরোধ তৈরি করে পাঠায় |
+| চিঠির খাম ও ঠিকানা | **HTTP Headers** | কোন ভাষায়, কী ধরনের তথ্য পাঠাচ্ছি |
+| চিঠির ভেতরের বিষয়বস্তু | **HTTP Body (JSON)** | আসল তথ্য যা পাঠানো হচ্ছে |
+| পৌরসভার দেওয়া রসিদ পড়া | **`response.json()`** | সার্ভারের উত্তর পড়া |
+| রসিদের তথ্য স্ক্রিনে দেখানো | **`setState()` / `useState`** | UI আপডেট করা |
 
 এই পুরো অ্যানালজি মাথায় রেখে এখন প্রজেক্টের প্রতিটি অংশ বোঝা যাক।
+
+---
+
+## রিয়েক্ট অ্যাপ — নাগরিক যে স্মার্টফোনে বসে আবেদন করে
+
+তুমি যেহেতু React বা React Native জানো, চলো সেখান থেকেই শুরু করি।
+
+পৌরসভার অ্যানালজিতে **React অ্যাপ হলো সেই নাগরিক** যে সরাসরি অফিসে না গিয়ে ঘরে বসে স্মার্টফোনে পৌরসভার অনলাইন পোর্টালে কাজ করছে। সে ফরম পূরণ করে পাঠায়, পৌরসভা কাজ করে, এবং ফোনে রসিদ চলে আসে।
+
+React-এ একটি সাধারণ নিবন্ধনের কোড দেখতে এরকম:
+
+```tsx
+// React / React Native কম্পোনেন্ট
+const [loading, setLoading] = useState(false);
+const [user, setUser] = useState(null);
+const [error, setError] = useState(null);
+
+const registerUser = async () => {
+  setLoading(true);
+
+  // নাগরিক পৌরসভার অনলাইন পোর্টালে আবেদন পাঠাচ্ছে
+  const response = await fetch('http://localhost:3000/api/users', {
+    method: 'POST',                              // আবেদনের ধরন: নতুন নিবন্ধন
+    headers: {
+      'Content-Type': 'application/json',        // চিঠির খামে লেখা: "এটি JSON ফরম্যাটের চিঠি"
+    },
+    body: JSON.stringify({                        // চিঠির ভেতরের বিষয়বস্তু
+      email: 'rahim@gmail.com',
+      name: 'রহিম',
+      password: '123456',
+    }),
+  });
+
+  const data = await response.json();            // পৌরসভার রসিদ পড়া
+
+  if (!response.ok) {
+    setError(data.message);                      // সমস্যা হলে স্ক্রিনে দেখাও
+  } else {
+    setUser(data);                               // সফল হলে স্ক্রিনে দেখাও
+  }
+
+  setLoading(false);
+};
+```
+
+**পৌরসভার অ্যানালজি — ধাপে ধাপে:**
+
+- `fetch('http://localhost:3000/api/users', ...)` → নাগরিক পৌরসভার অনলাইন পোর্টালের ঠিকানায় সংযোগ করছে
+- `method: 'POST'` → "আমি নতুন নিবন্ধনের জন্য এসেছি" — GET হলে তথ্য জানতে, POST হলে নতুন কিছু জমা দিতে
+- `headers: { 'Content-Type': 'application/json' }` → চিঠির খামের বাইরে লেখা ঠিকানা ও ধরন: "এটি ডিজিটাল ফরম্যাটের আবেদন"
+- `body: JSON.stringify({...})` → খামের ভেতরে আসল আবেদনপত্রের তথ্য
+- `response.json()` → পৌরসভা থেকে ফিরে আসা রসিদ পড়া
+- `setUser(data)` → রসিদের তথ্য ফোনের স্ক্রিনে দেখানো
+
+### React Native-এ URL একটু আলাদা
+
+```tsx
+// Android Emulator-এ চালালে
+const BASE_URL = 'http://10.0.2.2:3000/api';
+
+// iOS Simulator বা Physical Device-এ চালালে
+const BASE_URL = 'http://192.168.1.x:3000/api';  // তোমার কম্পিউটারের IP
+
+// Web (React)-এ চালালে
+const BASE_URL = 'http://localhost:3000/api';
+```
+
+**পৌরসভার অ্যানালজি:** Android Emulator হলো যেন আলাদা শহরের একটি ভার্চুয়াল অফিস — সে `localhost` চিনতে পারে না, তাই কম্পিউটারের আসল ঠিকানা দিতে হয় (`10.0.2.2`)।
 
 ---
 
@@ -84,6 +158,106 @@ blog-api/
 **২. বিজ্ঞপ্তি ও নোটিশ বিভাগ (Posts Module):** এখানে নোটিশ তৈরি, পড়া, সংশোধন এবং বাতিল করার কাজ হয়।
 
 এই দুটি বিভাগকে নিয়ন্ত্রণ করে একটি **প্রধান কার্যালয় (AppModule)**, এবং পুরো পৌরসভার দরজা হলো **main.ts**।
+
+---
+
+## অনুরোধের সম্পূর্ণ যাত্রা — নাগরিক পৌরসভায় যায় এবং ঘরে ফেরে
+
+তুমি React জানো, তাই সবচেয়ে আগে দরকার পুরো ছবিটা একসাথে দেখা। একটি `fetch()` কল করার পর ঠিক কী কী ঘটে — শুরু থেকে শেষ পর্যন্ত।
+
+### চিত্র — একটি অনুরোধের সম্পূর্ণ পথ
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│           React / React Native অ্যাপ (নাগরিক)              │
+│                                                             │
+│  fetch('http://localhost:3000/api/users', {                 │
+│    method: 'POST',                                          │
+│    body: JSON.stringify({ email, name, password })          │
+│  })                                                         │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ HTTP অনুরোধ (ইন্টারনেট/লোকাল নেটওয়ার্ক)
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│       NestJS সার্ভার — পোর্ট ৩০০০ (পৌরসভার প্রধান ফটক)    │
+│                    main.ts                                  │
+│                                                             │
+│  ধাপ ১ →  Global Prefix চেক: /api আছে?                     │
+│  ধাপ ২ →  Guards: পরিচয়পত্র যাচাই (এখন নেই, ভবিষ্যতে)     │
+│  ধাপ ৩ →  ValidationPipe: ফরমের তথ্য ঠিক আছে?             │
+│  ধাপ ৪ →  Router: কোন Controller-এ পাঠাবো?                 │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│      UsersController (নাগরিক নিবন্ধন কাউন্টার)             │
+│                                                             │
+│  @Post() create(@Body() dto: CreateUserDto)                 │
+│  → "নতুন নিবন্ধনের আবেদন পেয়েছি, ভেতরে পাঠাচ্ছি"          │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│      UsersService (ভেতরের কর্মকর্তা)                        │
+│                                                             │
+│  ১. ইমেইল আগে আছে কিনা চেক করো                            │
+│  ২. পাসওয়ার্ড bcrypt দিয়ে এনক্রিপ্ট করো                   │
+│  ৩. ডেটাবেজে সংরক্ষণ করো                                   │
+│  ৪. পাসওয়ার্ড বাদ দিয়ে ফলাফল তৈরি করো                     │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│   TypeORM Repository → PostgreSQL (মূল রেজিস্টার ভাণ্ডার)  │
+│                                                             │
+│  INSERT INTO users (email, name, password) VALUES (...)     │
+│  → নতুন সারি তৈরি হলো, UUID পেলাম                          │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ ডেটা ফেরত আসে (↑ উপরে উঠতে থাকে)
+                           ↑
+┌─────────────────────────────────────────────────────────────┐
+│      UsersService → Controller → সার্ভার                    │
+│                                                             │
+│  { id, email, name, createdAt, updatedAt }   ← পাসওয়ার্ড নেই│
+└──────────────────────────┬──────────────────────────────────┘
+          ↑ সফল হলে এই পথে   │ ত্রুটি হলে HttpExceptionFilter ধরে
+          │                   ↓
+          │       ┌───────────────────────┐
+          │       │  HttpExceptionFilter  │
+          │       │  { statusCode, path,  │
+          │       │    timestamp, message }│
+          │       └───────────┬───────────┘
+          │                   │
+          └───────────────────┘
+                           │ HTTP Response (ইন্টারনেট/লোকাল নেটওয়ার্ক)
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│           React / React Native অ্যাপ (নাগরিক ঘরে ফিরলো)   │
+│                                                             │
+│  const data = await response.json();                        │
+│  // সফল হলে: { id, email, name, createdAt }                 │
+│  // ব্যর্থ হলে: { statusCode: 409, message: 'Email...' }    │
+│                                                             │
+│  setUser(data);   ← স্ক্রিনে দেখাও                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### পৌরসভার অ্যানালজিতে এই পুরো যাত্রা
+
+১. **নাগরিক (React অ্যাপ)** স্মার্টফোনে বসে পৌরসভার অনলাইন পোর্টালে ফরম পূরণ করে "জমা দিন" বোতাম চাপে।
+২. **ইন্টারনেট/নেটওয়ার্ক** — চিঠিটা ডাকে পাঠানো হলো।
+৩. **পৌরসভার প্রধান ফটক (main.ts, পোর্ট ৩০০০)** — ডাকপিয়ন চিঠি নিয়ে এলো।
+৪. **প্রথম চেকপোস্ট (Global Prefix `/api`)** — এটা কি আমাদের পৌরসভার চিঠি? ঠিকানায় `/api` লেখা আছে?
+৫. **নিরাপত্তারক্ষী (Guards)** — পরিচয়পত্র দেখাও। (এখন সবার জন্য উন্মুক্ত, ভবিষ্যতে JWT লাগবে।)
+৬. **ফরম যাচাইকারী (ValidationPipe)** — ফরমের সব ঘর ঠিকঠাক পূরণ হয়েছে?
+৭. **রাউটার** — এটা `/users`-এর জন্য আবেদন, নাগরিক নিবন্ধন কাউন্টারে (UsersController) পাঠাও।
+৮. **কাউন্টার (UsersController)** — আবেদন পেয়েছি, ভেতরের কর্মকর্তাকে (UsersService) দিচ্ছি।
+৯. **ভেতরের কর্মকর্তা (UsersService)** — রেজিস্টার খুলে কাজ করে, ডেটাবেজে সংরক্ষণ করে।
+১০. **রেজিস্টার ভাণ্ডার (PostgreSQL)** — নতুন সারি তৈরি হলো, ফিরিয়ে দিলো।
+১১. **ফলাফল ফিরে আসে** — কর্মকর্তা পাসওয়ার্ড বাদ দিয়ে রসিদ তৈরি করলেন।
+১২. **নাগরিক (React অ্যাপ)** রসিদ পেলো, স্ক্রিনে দেখালো।
+
+**যদি কোথাও সমস্যা হয়** — যেমন ইমেইল আগে থেকে আছে — কর্মকর্তা `ConflictException` ছুঁড়ে দেন, `HttpExceptionFilter` সেটা ধরে সুন্দর JSON তৈরি করে নাগরিকের কাছে পাঠায়।
 
 ---
 
@@ -196,6 +370,43 @@ export class UsersController {
 
 যখন কেউ `POST /api/users` এ অনুরোধ পাঠায়, কাউন্টার (`UsersController`) সেটা ধরে এবং ভেতরের কর্মকর্তার (`UsersService`) কাছে পাঠায়।
 
+### React থেকে এই কাউন্টারে কীভাবে যায়
+
+```tsx
+// React — নতুন ব্যবহারকারী তৈরি
+const createUser = async () => {
+  const response = await fetch('http://localhost:3000/api/users', {
+    method: 'POST',                           // → @Post() কন্ট্রোলারে যাবে
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: 'rahim@gmail.com',              // → @Body() dto.email
+      name: 'রহিম',                          // → @Body() dto.name
+      password: '123456',                    // → @Body() dto.password
+    }),
+  });
+  const data = await response.json();
+  console.log(data);
+  // সফল হলে: { id: 'uuid...', email: 'rahim@gmail.com', name: 'রহিম', ... }
+};
+
+// React — সব ব্যবহারকারী দেখা
+useEffect(() => {
+  fetch('http://localhost:3000/api/users')   // → @Get() কন্ট্রোলারে যাবে
+    .then(res => res.json())
+    .then(data => setUsers(data));
+}, []);
+
+// React — নির্দিষ্ট ব্যবহারকারী দেখা
+const getUser = async (userId: string) => {
+  const response = await fetch(
+    `http://localhost:3000/api/users/${userId}` // → @Get(':id'), @Param('id')
+  );
+  return response.json();
+};
+```
+
+**পৌরসভার অ্যানালজি:** React-এর `fetch()` কলের `method` হলো পৌরসভার কাউন্টারে লেখা নির্দেশনা — "POST লাইনে দাঁড়াও" বা "GET লাইনে দাঁড়াও"। NestJS `method` দেখে সঠিক `@Post()` বা `@Get()` মেথডে পাঠায়।
+
 **`ParseUUIDPipe` কী করে?** ধরো কেউ URL-এ ভুল আইডি দিল (`abc-xyz` যেটা UUID না)। `ParseUUIDPipe` হলো সেই কর্মী যে বলে "এটা বৈধ আইডি নয়, ফিরে যান।" সার্ভিস পর্যন্ত পৌঁছানোর আগেই থামিয়ে দেয়।
 
 ---
@@ -251,6 +462,61 @@ export class PostsController {
 `@Query('authorId')` হলো যেন বলা: "শুধু আব্দুল সাহেবের লেখা নোটিশগুলো দেখাও।" URL হবে: `/api/posts?authorId=uuid-here`
 
 `@HttpCode(HttpStatus.OK)` — মুছে ফেললে সাধারণত ২০৪ (কোনো কিছু নেই) পাঠানো হয়, কিন্তু এখানে ২০০ পাঠানো হয় কারণ একটি বার্তা পাঠানো হচ্ছে।
+
+### React থেকে পোস্ট কন্ট্রোলারে কীভাবে যায়
+
+```tsx
+// React — নতুন পোস্ট তৈরি
+const createPost = async () => {
+  const response = await fetch('http://localhost:3000/api/posts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title: 'জলকর মওকুফ বিজ্ঞপ্তি',
+      content: 'এই মাসে জলকর মওকুফ করা হয়েছে...',
+      published: false,                     // ড্রাফট হিসেবে রাখো
+      authorId: currentUser.id,             // লগইন করা ব্যবহারকারীর UUID
+    }),
+  });
+  const post = await response.json();
+  setPosts(prev => [post, ...prev]);        // নতুন পোস্ট তালিকার শুরুতে রাখো
+};
+
+// React — নির্দিষ্ট লেখকের পোস্ট ফিল্টার করে দেখা
+const getPostsByAuthor = async (authorId: string) => {
+  // → @Get() + @Query('authorId') কন্ট্রোলারে যাবে
+  const response = await fetch(
+    `http://localhost:3000/api/posts?authorId=${authorId}`
+  );
+  return response.json();
+};
+
+// React — পোস্ট আপডেট করা
+const publishPost = async (postId: string) => {
+  const response = await fetch(
+    `http://localhost:3000/api/posts/${postId}`,  // → @Put(':id')
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ published: true }),   // শুধু এই একটি ক্ষেত্র পাঠালেই হবে
+    }
+  );
+  return response.json();
+};
+
+// React — পোস্ট মুছে ফেলা
+const deletePost = async (postId: string) => {
+  const response = await fetch(
+    `http://localhost:3000/api/posts/${postId}`,  // → @Delete(':id')
+    { method: 'DELETE' }
+  );
+  const result = await response.json();
+  // result = { message: 'Post #uuid deleted successfully' }
+  setPosts(prev => prev.filter(p => p.id !== postId));
+};
+```
+
+**পৌরসভার অ্যানালজি:** React-এর প্রতিটি `fetch()` কল হলো নাগরিকের একটি আলাদা আবেদন। `PUT` মানে সংশোধনী আবেদন — পুরো ফরম আবার লিখতে হয় না, শুধু যেটা বদলানো দরকার সেটাই পাঠালেই হয়।
 
 ---
 
@@ -947,6 +1213,211 @@ const AppDataSource = new DataSource({
 
 ---
 
+## React-এ উত্তর ফিরে আসে — নাগরিক রসিদ হাতে ঘরে ফেরে
+
+NestJS সার্ভার কাজ শেষ করে React-এ একটি JSON অবজেক্ট পাঠায়। React সেই JSON পেয়ে UI আপডেট করে। এই পুরো চক্রটা বোঝা জরুরি।
+
+### সফল উত্তর — রসিদ ঠিকঠাক এসেছে
+
+```tsx
+// NestJS থেকে যা আসে (HTTP 201 Created):
+// {
+//   "id": "a3f2bc4d-1234-5678-abcd-ef0123456789",
+//   "email": "rahim@gmail.com",
+//   "name": "রহিম",
+//   "createdAt": "2026-05-01T10:30:00.000Z",
+//   "updatedAt": "2026-05-01T10:30:00.000Z"
+// }
+// লক্ষ্য করো: password নেই — সার্ভার ইচ্ছাকৃতভাবে বাদ দিয়েছে
+
+// React-এ এটা ব্যবহার করা
+const registerUser = async () => {
+  setLoading(true);
+  setError(null);
+
+  const response = await fetch('http://localhost:3000/api/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, name, password }),
+  });
+
+  const data = await response.json();
+
+  if (response.ok) {
+    // response.ok মানে HTTP 200–299 — কাজ সফল হয়েছে
+    // data = { id, email, name, createdAt, updatedAt }
+    setUser(data);
+    navigation.navigate('Home');             // নতুন পাতায় নিয়ে যাও
+  } else {
+    // response.ok = false মানে HTTP 400, 404, 409 ইত্যাদি
+    // data = { statusCode: 409, message: 'Email already in use', path: '...', timestamp: '...' }
+    setError(data.message);                  // স্ক্রিনে ত্রুটি বার্তা দেখাও
+  }
+
+  setLoading(false);
+};
+```
+
+**পৌরসভার অ্যানালজি:** নাগরিক আবেদন করে ঘরে বসে অপেক্ষা করছে। পৌরসভা কাজ শেষ করে এসএমএস পাঠালো। `response.ok` দেখে বোঝা যায় এসএমএসে "সফল" লেখা আছে নাকি "প্রত্যাখ্যাত"।
+
+---
+
+### ত্রুটির উত্তর — পৌরসভা কেন ফিরিয়ে দিলো
+
+NestJS তিনটি প্রধান পরিস্থিতিতে ত্রুটি পাঠায়। React-এ প্রতিটির জন্য আলাদাভাবে সাড়া দিতে হয়:
+
+```tsx
+// পরিস্থিতি ১: ValidationPipe ফরম বাতিল করেছে (HTTP 400)
+// NestJS থেকে আসে:
+// {
+//   "statusCode": 400,
+//   "message": ["email must be an email", "password must be longer than 6 characters"],
+//   "error": "Bad Request"
+// }
+// পৌরসভার অ্যানালজি: ফরম যাচাইকারী বললো "ফরম অসম্পূর্ণ"
+
+// পরিস্থিতি ২: একই ইমেইলে আবার নিবন্ধন (HTTP 409)
+// NestJS থেকে আসে:
+// {
+//   "statusCode": 409,
+//   "timestamp": "2026-05-01T10:30:00.000Z",
+//   "path": "/api/users",
+//   "message": "Email already in use"
+// }
+// পৌরসভার অ্যানালজি: কর্মকর্তা বললো "এই ঠিকানায় ইতিমধ্যে নিবন্ধন আছে"
+
+// পরিস্থিতি ৩: না থাকা নাগরিকের তথ্য চাওয়া (HTTP 404)
+// NestJS থেকে আসে:
+// {
+//   "statusCode": 404,
+//   "timestamp": "2026-05-01T10:30:00.000Z",
+//   "path": "/api/users/abc-123",
+//   "message": "User #abc-123 not found"
+// }
+// পৌরসভার অ্যানালজি: কর্মকর্তা রেজিস্টার খুলে বললো "এই আইডিতে কেউ নেই"
+
+// React-এ সব পরিস্থিতি একসাথে সামলানো
+const handleApiError = (data: any, status: number) => {
+  switch (status) {
+    case 400:
+      // ফরমের কোন ঘরে সমস্যা — ব্যবহারকারীকে দেখাও
+      const messages = Array.isArray(data.message)
+        ? data.message.join(', ')
+        : data.message;
+      Alert.alert('ফরম ত্রুটি', messages);
+      break;
+    case 409:
+      Alert.alert('ইতিমধ্যে আছে', data.message);  // 'Email already in use'
+      break;
+    case 404:
+      Alert.alert('পাওয়া যায়নি', data.message);   // 'User #... not found'
+      break;
+    default:
+      Alert.alert('সমস্যা হয়েছে', 'আবার চেষ্টা করুন');
+  }
+};
+```
+
+---
+
+### একটি সম্পূর্ণ React Native স্ক্রিনের উদাহরণ
+
+এই উদাহরণে দেখা যাবে কীভাবে পোস্টের তালিকা লোড হয় এবং একটি পোস্ট মুছে ফেলা হয়:
+
+```tsx
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
+
+const BASE_URL = 'http://10.0.2.2:3000/api';   // Android Emulator
+
+export default function PostsScreen() {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // কম্পোনেন্ট লোড হলেই পোস্ট আনো
+  // → GET /api/posts
+  // → PostsController @Get() → PostsService.findAll() → PostgreSQL
+  useEffect(() => {
+    fetch(`${BASE_URL}/posts`)
+      .then(res => res.json())
+      .then(data => {
+        setPosts(data);          // data = [{ id, title, content, author: {...}, ... }]
+        setLoading(false);
+      });
+  }, []);
+
+  // পোস্ট প্রকাশিত করো
+  // → PUT /api/posts/:id
+  // → PostsController @Put(':id') → PostsService.update()
+  const publishPost = async (postId: string) => {
+    const response = await fetch(`${BASE_URL}/posts/${postId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ published: true }),
+    });
+    const updated = await response.json();
+    // updated = { id, title, content, published: true, author: {...} }
+    setPosts(prev => prev.map(p => p.id === postId ? updated : p));
+  };
+
+  // পোস্ট মুছে ফেলো
+  // → DELETE /api/posts/:id
+  // → PostsController @Delete(':id') → PostsService.remove()
+  const deletePost = async (postId: string) => {
+    const response = await fetch(`${BASE_URL}/posts/${postId}`, {
+      method: 'DELETE',
+    });
+    const result = await response.json();
+    // result = { message: 'Post #uuid deleted successfully' }
+    Alert.alert('সফল', result.message);
+    setPosts(prev => prev.filter(p => p.id !== postId));
+  };
+
+  return (
+    <FlatList
+      data={posts}
+      keyExtractor={item => item.id}
+      renderItem={({ item }) => (
+        <View>
+          <Text>{item.title}</Text>
+          {/* item.author.name — NestJS relations: ['author'] এর কারণে পাওয়া যাচ্ছে */}
+          <Text>লেখক: {item.author.name}</Text>
+          <TouchableOpacity onPress={() => publishPost(item.id)}>
+            <Text>প্রকাশ করো</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => deletePost(item.id)}>
+            <Text>মুছে দাও</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    />
+  );
+}
+```
+
+**পৌরসভার অ্যানালজি:**
+
+- `useEffect` → স্ক্রিন খুলতেই নাগরিক পৌরসভায় গিয়ে নোটিশ বোর্ড দেখে আসে।
+- `item.author.name` → নোটিশে শুধু লেখকের নাম নয়, পুরো পরিচয় লেখা আছে — কারণ NestJS সার্ভিসে `relations: ['author']` দিয়ে লেখকের পুরো প্রোফাইল জুড়ে দেওয়া হয়েছিল।
+- `setPosts(prev => prev.filter(...))` → রসিদ পেয়ে নাগরিক নিজের হাতের তালিকা থেকে সেই নোটিশ কেটে দিলো।
+
+---
+
+### HTTP স্ট্যাটাস কোড — পৌরসভার রসিদের ধরন
+
+React-এ `response.status` বা `response.ok` দিয়ে বোঝা যায় পৌরসভা কী সিদ্ধান্ত দিয়েছে:
+
+| HTTP কোড | পৌরসভার রসিদ | NestJS-এ কখন হয় | React-এ কী করতে হবে |
+|---|---|---|---|
+| **২০০ OK** | "কাজ সম্পন্ন, এই নিন রসিদ" | GET, PUT, DELETE সফল | `response.ok = true`, ডেটা ব্যবহার করো |
+| **২০১ Created** | "নতুন নিবন্ধন সম্পন্ন" | POST সফল | `response.ok = true`, নতুন আইটেম যোগ করো |
+| **৪০০ Bad Request** | "ফরম অসম্পূর্ণ বা ভুল" | `ValidationPipe` বাতিল করেছে | ফরম ত্রুটি দেখাও |
+| **৪০৪ Not Found** | "এই ফাইলটি আমাদের কাছে নেই" | `NotFoundException` | "পাওয়া যায়নি" দেখাও |
+| **৪০৯ Conflict** | "ইতিমধ্যে নিবন্ধন আছে" | `ConflictException` | "আগে থেকে আছে" দেখাও |
+| **৫০০ Server Error** | "আমাদের ভেতরে সমস্যা হয়েছে" | অপ্রত্যাশিত এরর | "আবার চেষ্টা করুন" দেখাও |
+
+---
+
 ## শেখার পথ (Learning Path)
 
 এই প্রজেক্টটি দেখে ধাপে ধাপে NestJS শেখার পরামর্শ:
@@ -1026,15 +1497,16 @@ const AppDataSource = new DataSource({
 
 ---
 
-### বাস্তব অনুশীলন
+### বাস্তব অনুশীলন — React/React Native থেকে পরীক্ষা করো
 
-এই প্রজেক্টে হাত দিয়ে শেখার জন্য কিছু কাজ:
+এই প্রজেক্টে হাত দিয়ে শেখার জন্য কিছু কাজ। প্রতিটিতে **React-এর কোড** লেখো এবং **NestJS-এ কী ঘটে** সেটা মিলিয়ে দেখো:
 
-১. একটি নতুন নাগরিক তৈরি করো (`POST /api/users`) এবং দেখো সার্ভার কী বলে।
-২. ভুল ইমেইল দিয়ে চেষ্টা করো — `ValidationPipe` কী বার্তা দেয়?
-৩. একই ইমেইলে দুবার চেষ্টা করো — `ConflictException` কীভাবে দেখায়?
-৪. নতুন একটি পোস্ট তৈরি করো এবং `?authorId=` দিয়ে ফিল্টার করো।
-৫. একটি পোস্টের `published: true` করো `PUT` দিয়ে।
+১. **নতুন ব্যবহারকারী তৈরি** — `POST /api/users` — ভুল ইমেইল দাও, দেখো `ValidationPipe` কী বলে। React-এ `data.message` প্রিন্ট করো।
+২. **একই ইমেইলে দুবার** — `ConflictException` (HTTP 409) আসে। React-এ `response.status === 409` চেক করো।
+৩. **নোটিশ তৈরি** — `POST /api/posts` — `authorId` ছাড়া পাঠাও, দেখো কী হয়। তারপর সঠিক UUID দিয়ে পাঠাও।
+৪. **লেখক দিয়ে ফিল্টার** — `GET /api/posts?authorId=uuid` — React-এ `fetch(\`/api/posts?authorId=${userId}\`)` ব্যবহার করো।
+৫. **নোটিশ প্রকাশ** — `PUT /api/posts/:id` — শুধু `{ published: true }` পাঠাও, বাকি তথ্য অপরিবর্তিত থাকে কিনা দেখো।
+৬. **ভুল UUID** — `GET /api/users/not-a-uuid` — `ParseUUIDPipe` HTTP 400 দেয়। `GET /api/users/valid-but-nonexistent-uuid` — `NotFoundException` HTTP 404 দেয়।
 
 ---
 
@@ -1051,6 +1523,8 @@ const AppDataSource = new DataSource({
 - **Entities** হলো রেজিস্টার বইয়ের ডিজাইন — ডেটাবেজ টেবিলের নকশা।
 - **HttpExceptionFilter** হলো অভিযোগ নিষ্পত্তি বিভাগ — সমস্যা সুন্দরভাবে জানায়।
 - **Decorators** হলো পরিচয়পত্র — প্রতিটি ক্লাস বা মেথডের ভূমিকা চিহ্নিত করে।
+
+React ডেভেলপার হিসেবে তুমি ইতিমধ্যে জানো — `useState`, `useEffect`, `fetch()` দিয়ে ডেটা আনা। NestJS হলো সেই `fetch()`-এর অপর প্রান্ত। তুমি যখন `fetch('/api/users', { method: 'POST' })` করো, NestJS-এর পুরো পৌরসভা মেশিন চালু হয় — গার্ড, পাইপ, কন্ট্রোলার, সার্ভিস, ডেটাবেজ — এবং সুন্দর JSON রসিদ নিয়ে ফিরে আসে।
 
 NestJS শেখার সবচেয়ে বড় চাবিকাঠি হলো: **প্রতিটি জিনিসের একটি নির্দিষ্ট জায়গা আছে, নির্দিষ্ট দায়িত্ব আছে।** এই নিয়ম মেনে চললে বড় প্রজেক্টেও কোড পরিষ্কার ও বোধগম্য থাকে।
 
