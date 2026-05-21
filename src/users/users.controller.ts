@@ -26,9 +26,14 @@ export class UsersController {
     return this.usersService.create(dto);
   }
 
-  // @Get() handles GET /api/users
+  // FLOW STEP 2 — Router matched GET /api/users to this method.
+  // @Get() with no argument means "match the base route of this controller" (/api/users).
+  // NestJS calls findAll() with no arguments — there's no URL param or body to extract.
+  // Next: calls usersService.findAll() → go to users.service.ts:53
   @Get()
   findAll() {
+    // usersService is injected via the constructor (line 19).
+    // The return value of findAll() is automatically serialized to JSON by NestJS.
     return this.usersService.findAll();
   }
 

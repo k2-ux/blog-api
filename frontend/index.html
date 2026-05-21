@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog API</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- AUTH SECTION — shown when no token in localStorage -->
+  <div id="auth-section">
+    <div class="auth-card">
+      <h1>Blog API</h1>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="login">Login</button>
+        <button class="tab" data-tab="register">Register</button>
+      </div>
+
+      <!-- Login Tab -->
+      <div id="login-tab">
+        <form id="login-form">
+          <input type="email" name="email" placeholder="Email" required />
+          <input type="password" name="password" placeholder="Password" required />
+          <button type="submit">Login</button>
+        </form>
+        <div class="divider">or</div>
+        <button id="google-btn">Login with Google</button>
+        <p id="login-error" class="error hidden"></p>
+      </div>
+
+      <!-- Register Tab -->
+      <div id="register-tab" class="hidden">
+        <form id="register-form">
+          <input type="text" name="name" placeholder="Name" required />
+          <input type="email" name="email" placeholder="Email" required />
+          <input type="password" name="password" placeholder="Password (min 6 chars)" required />
+          <button type="submit">Create Account</button>
+        </form>
+        <p id="register-error" class="error hidden"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD — shown when logged in -->
+  <div id="dashboard" class="hidden">
+    <header>
+      <h1>Blog API</h1>
+      <div class="header-right">
+        <span id="user-info"></span>
+        <button id="logout-btn">Logout</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- Create Post -->
+      <section class="card">
+        <h2>New Post</h2>
+        <form id="post-form">
+          <input type="text" name="title" placeholder="Title" required />
+          <textarea name="content" placeholder="Content" rows="4" required></textarea>
+          <label class="checkbox-label">
+            <input type="checkbox" name="published" />
+            Publish immediately
+          </label>
+          <button type="submit">Create Post</button>
+        </form>
+        <p id="post-error" class="error hidden"></p>
+      </section>
+
+      <!-- Posts List -->
+      <section class="card">
+        <h2>All Posts</h2>
+        <div id="posts-list">Loading...</div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { PostsModule } from './posts/posts.module';
+import { AuthModule } from './auth/auth.module';
 
 // @Module is the decorator that turns a plain class into a NestJS module.
 // A module is a logical boundary — it groups related controllers and services.
@@ -37,6 +38,7 @@ import { PostsModule } from './posts/posts.module';
 
     UsersModule,
     PostsModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
